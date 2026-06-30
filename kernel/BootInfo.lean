@@ -11,5 +11,10 @@ structure Ptr where
 def framebufferResponse (bootInfo : Ptr) : UInt64 :=
   Support.Memory.load64 bootInfo.addr
 
-end Kernel.BootInfo
+def hhdmResponse (bootInfo : Ptr) : UInt64 :=
+  Support.Memory.load64 (bootInfo.addr + (8 : UInt64))
 
+def memmapResponse (bootInfo : Ptr) : UInt64 :=
+  Support.Memory.load64 (bootInfo.addr + (16 : UInt64))
+
+end Kernel.BootInfo

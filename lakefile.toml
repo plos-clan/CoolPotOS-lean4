@@ -4,7 +4,7 @@ defaultTargets = ["KernelLimine", "KernelArchX86_64", "KernelArchLoongArch64"]
 
 [[lean_lib]]
 name = "KernelLimine"
-roots = ["kernel.Limine.Limine", "kernel.Limine.Framebuffer"]
+roots = ["kernel.Limine.Common", "kernel.Limine.Response"]
 
 [[lean_lib]]
 name = "KernelSupport"
@@ -12,7 +12,7 @@ roots = ["kernel.Support.Memory"]
 
 [[lean_lib]]
 name = "Kernel"
-roots = ["kernel.BootInfo", "kernel.Framebuffer", "kernel.Core"]
+roots = ["kernel.BootInfo", "kernel.Framebuffer", "kernel.Memory", "kernel.Core"]
 
 [[lean_lib]]
 name = "KernelArchX86_64"

@@ -34,9 +34,16 @@ structure Framebuffer where
   mode_count : UInt64
   modes : UInt64
 
-structure FramebufferResponse where
-  revision : UInt64
-  framebuffer_count : UInt64
-  framebuffers : UInt64
+structure MpInfo where
+  processor_id : UInt64
+  phys_id : UInt64
+  reserved : UInt64
+  goto_address : UInt64
+  extra_argument : UInt64
+
+structure MemmapEntry where
+  base : UInt64
+  length : UInt64
+  type : UInt64
 
 end Limine
