@@ -1,0 +1,23 @@
+name = "CoolPotOS-lean4"
+version = "0.1.0"
+defaultTargets = ["KernelLimine", "KernelArchX86_64", "KernelArchLoongArch64"]
+
+[[lean_lib]]
+name = "KernelLimine"
+roots = ["kernel.Limine.Limine", "kernel.Limine.Framebuffer"]
+
+[[lean_lib]]
+name = "KernelSupport"
+roots = ["kernel.Support.Memory"]
+
+[[lean_lib]]
+name = "Kernel"
+roots = ["kernel.BootInfo", "kernel.Framebuffer", "kernel.Core"]
+
+[[lean_lib]]
+name = "KernelArchX86_64"
+roots = ["kernel.Arch.x86_64.Cpu", "kernel.Arch.x86_64.Main"]
+
+[[lean_lib]]
+name = "KernelArchLoongArch64"
+roots = ["kernel.Arch.loongarch64.Cpu", "kernel.Arch.loongarch64.Main"]
