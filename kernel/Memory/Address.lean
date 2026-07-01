@@ -11,10 +11,10 @@ def physicalUpperMask : UInt64 := 0xfff0000000000000
 
 def isCanonical (addr : UInt64) : Bool :=
   let masked := addr &&& canonicalMask
-  masked == (0 : UInt64) || masked == canonicalMask
+  masked == 0 || masked == canonicalMask
 
 def isPhysical (addr : UInt64) : Bool :=
-  addr &&& physicalUpperMask == (0 : UInt64)
+  addr &&& physicalUpperMask == 0
 
 structure RawAddr where
   value : UInt64
@@ -30,11 +30,9 @@ structure PhysAddr where
 
 namespace RawAddr
 
-def null : RawAddr :=
-  { value := (0 : UInt64) }
+def null : RawAddr := { value := 0 }
 
-def isNull (addr : RawAddr) : Bool :=
-  addr.value == (0 : UInt64)
+def isNull (addr : RawAddr) : Bool := addr.value == 0
 
 end RawAddr
 
@@ -46,8 +44,7 @@ def of? (value : UInt64) : Option VirtAddr :=
   else
     none
 
-def raw (addr : VirtAddr) : RawAddr :=
-  { value := addr.value }
+def raw (addr : VirtAddr) : RawAddr := { value := addr.value }
 
 end VirtAddr
 
@@ -59,8 +56,7 @@ def of? (value : UInt64) : Option PhysAddr :=
   else
     none
 
-def raw (addr : PhysAddr) : RawAddr :=
-  { value := addr.value }
+def raw (addr : PhysAddr) : RawAddr := { value := addr.value }
 
 def toVirt? (addr : PhysAddr) (hhdm : VirtAddr) : Option VirtAddr :=
   VirtAddr.of? (addr.value + hhdm.value)

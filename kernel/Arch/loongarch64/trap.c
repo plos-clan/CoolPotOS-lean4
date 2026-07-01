@@ -1,0 +1,105 @@
+#include <lean/lean.h>
+
+extern uint64_t interrupt_common(
+    uint64_t vector,
+    uint64_t error_code,
+    uint64_t frame
+);
+void interrupt_entry(void);
+
+uint64_t load_trap(uint64_t token) {
+    __asm__ volatile (
+        "csrwr %0, 0xc"
+        :: "r"((uint64_t)interrupt_entry)
+        : "memory"
+    );
+    return token;
+}
+
+__attribute__((naked)) void interrupt_entry(void) {
+    __asm__ volatile (
+        "addi.d $sp, $sp, -272\n"
+        "st.d $ra, $sp, 0\n"
+        "st.d $tp, $sp, 8\n"
+        "st.d $a0, $sp, 16\n"
+        "st.d $a1, $sp, 24\n"
+        "st.d $a2, $sp, 32\n"
+        "st.d $a3, $sp, 40\n"
+        "st.d $a4, $sp, 48\n"
+        "st.d $a5, $sp, 56\n"
+        "st.d $a6, $sp, 64\n"
+        "st.d $a7, $sp, 72\n"
+        "st.d $t0, $sp, 80\n"
+        "st.d $t1, $sp, 88\n"
+        "st.d $t2, $sp, 96\n"
+        "st.d $t3, $sp, 104\n"
+        "st.d $t4, $sp, 112\n"
+        "st.d $t5, $sp, 120\n"
+        "st.d $t6, $sp, 128\n"
+        "st.d $t7, $sp, 136\n"
+        "st.d $t8, $sp, 144\n"
+        "st.d $r21, $sp, 152\n"
+        "st.d $fp, $sp, 160\n"
+        "st.d $s0, $sp, 168\n"
+        "st.d $s1, $sp, 176\n"
+        "st.d $s2, $sp, 184\n"
+        "st.d $s3, $sp, 192\n"
+        "st.d $s4, $sp, 200\n"
+        "st.d $s5, $sp, 208\n"
+        "st.d $s6, $sp, 216\n"
+        "st.d $s7, $sp, 224\n"
+        "st.d $s8, $sp, 232\n"
+        "csrrd $a0, 0x5\n"
+        "move $a1, $a0\n"
+        "csrrd $t0, 0x6\n"
+        "csrrd $t1, 0x1\n"
+        "srli.d $a0, $a0, 16\n"
+        "andi $a0, $a0, 0x3f\n"
+        "st.d $a0, $sp, 240\n"
+        "st.d $t0, $sp, 248\n"
+        "st.d $t1, $sp, 256\n"
+        "move $a2, $sp\n"
+        "bl interrupt_common\n"
+        "ld.d $t0, $sp, 240\n"
+        "bnez $t0, 1f\n"
+        "ld.d $t1, $sp, 248\n"
+        "csrwr $t1, 0x6\n"
+        "ld.d $t1, $sp, 256\n"
+        "csrwr $t1, 0x1\n"
+        "ld.d $ra, $sp, 0\n"
+        "ld.d $tp, $sp, 8\n"
+        "ld.d $a0, $sp, 16\n"
+        "ld.d $a1, $sp, 24\n"
+        "ld.d $a2, $sp, 32\n"
+        "ld.d $a3, $sp, 40\n"
+        "ld.d $a4, $sp, 48\n"
+        "ld.d $a5, $sp, 56\n"
+        "ld.d $a6, $sp, 64\n"
+        "ld.d $a7, $sp, 72\n"
+        "ld.d $t0, $sp, 80\n"
+        "ld.d $t1, $sp, 88\n"
+        "ld.d $t2, $sp, 96\n"
+        "ld.d $t3, $sp, 104\n"
+        "ld.d $t4, $sp, 112\n"
+        "ld.d $t5, $sp, 120\n"
+        "ld.d $t6, $sp, 128\n"
+        "ld.d $t7, $sp, 136\n"
+        "ld.d $t8, $sp, 144\n"
+        "ld.d $r21, $sp, 152\n"
+        "ld.d $fp, $sp, 160\n"
+        "ld.d $s0, $sp, 168\n"
+        "ld.d $s1, $sp, 176\n"
+        "ld.d $s2, $sp, 184\n"
+        "ld.d $s3, $sp, 192\n"
+        "ld.d $s4, $sp, 200\n"
+        "ld.d $s5, $sp, 208\n"
+        "ld.d $s6, $sp, 216\n"
+        "ld.d $s7, $sp, 224\n"
+        "ld.d $s8, $sp, 232\n"
+        "addi.d $sp, $sp, 272\n"
+        "ertn\n"
+        "1: idle 0\n"
+        "b 1b\n"
+        ::: "memory"
+    );
+}

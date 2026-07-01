@@ -15,7 +15,7 @@ abbrev PhysAddr := Address.PhysAddr
 namespace RawAddr
 
 def hhdmOffset (hhdm : RawAddr) : RawAddr :=
-  { value := load64 (hhdm.value + (8 : UInt64)) }
+  { value := load64 (hhdm.value + 8) }
 
 def toVirt (phys hhdm : RawAddr) : RawAddr :=
   { value := phys.value + (hhdmOffset hhdm).value }

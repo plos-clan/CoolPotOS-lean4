@@ -29,6 +29,8 @@ roots = [
   "kernel.Memory.Hhdm",
   "kernel.Memory.FrameAllocator",
   "kernel.Memory.Heap",
+  "kernel.Trap.Frame",
+  "kernel.Trap.Handler",
   "kernel.Main",
 ]
 
@@ -36,6 +38,8 @@ roots = [
 name = "KernelArchX86_64"
 roots = [
   "kernel.Arch.x86_64.Cpu",
+  "kernel.Arch.x86_64.Gdt",
+  "kernel.Arch.x86_64.Idt",
   "kernel.Arch.x86_64.Entry",
 ]
 
@@ -43,5 +47,6 @@ roots = [
 name = "KernelArchLoongArch64"
 roots = [
   "kernel.Arch.loongarch64.Cpu",
+  "kernel.Arch.loongarch64.Trap",
   "kernel.Arch.loongarch64.Entry",
 ]

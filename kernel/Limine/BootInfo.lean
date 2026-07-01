@@ -8,13 +8,10 @@ namespace Kernel.Limine.BootInfo
 
 open Kernel.Memory.Address
 
-def framebufferResponse (bootInfo : RawAddr) : RawAddr :=
-  { value := Utils.Memory.load64 bootInfo.value }
+def framebufferResponse (bootInfo : RawAddr) : RawAddr := { value := Utils.Memory.load64 bootInfo.value }
 
-def hhdmResponse (bootInfo : RawAddr) : RawAddr :=
-  { value := Utils.Memory.load64 (bootInfo.value + (8 : UInt64)) }
+def hhdmResponse (bootInfo : RawAddr) : RawAddr := { value := Utils.Memory.load64 (bootInfo.value + 8) }
 
-def memmapResponse (bootInfo : RawAddr) : RawAddr :=
-  { value := Utils.Memory.load64 (bootInfo.value + (16 : UInt64)) }
+def memmapResponse (bootInfo : RawAddr) : RawAddr := { value := Utils.Memory.load64 (bootInfo.value + 16) }
 
 end Kernel.Limine.BootInfo

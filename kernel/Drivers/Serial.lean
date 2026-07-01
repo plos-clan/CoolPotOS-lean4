@@ -16,7 +16,7 @@ opaque writeByte : UInt8 -> UInt64 -> UInt64
 opaque writeString : String -> UInt64 -> UInt64
 
 def writeNewline (token : UInt64) : UInt64 :=
-  writeByte (10 : UInt8) token
+  writeByte 10 token
 
 def writeLine (text : String) (token : UInt64) : UInt64 :=
   writeNewline (writeString text token)

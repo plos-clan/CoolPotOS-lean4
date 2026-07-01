@@ -13,6 +13,11 @@ uint8_t mem_store8(uint64_t addr, uint8_t value) {
     return value;
 }
 
+uint16_t mem_store16(uint64_t addr, uint16_t value) {
+    *(volatile uint16_t *)addr = value;
+    return value;
+}
+
 uint32_t mem_store32(uint64_t addr, uint32_t value) {
     *(volatile uint32_t *)addr = value;
     return value;

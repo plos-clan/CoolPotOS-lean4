@@ -5,18 +5,19 @@ OUTPUT_IMG := $(BUILD_DIR)/CoolPotOS-$(ARCH).img
 
 C_SRCS := kernel/boot.c kernel/shim.c
 C_SRCS += kernel/Limine/limine.c
-C_SRCS += kernel/Utils/memory.c
+C_SRCS += kernel/Utils/memory.c kernel/Utils/format.c
 C_SRCS += kernel/Drivers/serial.c
 C_SRCS += kernel/Arch/$(ARCH)/cpu.c kernel/Arch/$(ARCH)/serial.c
 
 LEAN_MODULES := kernel/Utils/Memory kernel/Utils/Bitmap kernel/Utils/Format
 LEAN_MODULES += kernel/Limine/BootInfo kernel/Main
+LEAN_MODULES += kernel/Trap/Frame kernel/Trap/Handler
 LEAN_MODULES += kernel/Drivers/Framebuffer kernel/Drivers/Serial
 LEAN_MODULES += kernel/Memory/Address kernel/Memory/Memmap kernel/Memory/Hhdm
 LEAN_MODULES += kernel/Memory/FrameAllocator kernel/Memory/Heap
 LEAN_MODULES += kernel/Arch/$(ARCH)/Cpu kernel/Arch/$(ARCH)/Entry
-C_OBJS := $(patsubst %.c,$(BUILD_DIR)/%.o,$(C_SRCS))
-LEAN_OBJS := $(addprefix $(BUILD_DIR)/,$(addsuffix .o,$(LEAN_MODULES)))
+C_OBJS = $(patsubst %.c,$(BUILD_DIR)/%.o,$(C_SRCS))
+LEAN_OBJS = $(addprefix $(BUILD_DIR)/,$(addsuffix .o,$(LEAN_MODULES)))
 
 LEAN_PREFIX := $(shell lake env lean --print-prefix)
 CFLAGS := -O3 -ffunction-sections -fdata-sections
@@ -33,12 +34,16 @@ QEMUFLAGS += -drive if=none,id=disk,format=raw,file=$(OUTPUT_IMG)
 ifeq ($(ARCH), x86_64)
 	CFLAGS += -target x86_64-unknown-none
 	CFLAGS += -m64 -mcmodel=kernel -mgeneral-regs-only -mno-red-zone
+	C_SRCS += kernel/Arch/x86_64/gdt.c kernel/Arch/x86_64/idt.c
+	LEAN_MODULES += kernel/Arch/x86_64/Gdt kernel/Arch/x86_64/Idt
 	QEMUFLAGS += -M q35 -cpu host -accel kvm
 	EFI_NAME := BOOTX64.EFI
 	ARCH_TARGET := KernelArchX86_64
 else ifeq ($(ARCH), loongarch64)
 	CFLAGS += -target loongarch64-unknown-none
 	CFLAGS += -mcmodel=medium -msoft-float
+	C_SRCS += kernel/Arch/loongarch64/trap.c
+	LEAN_MODULES += kernel/Arch/loongarch64/Trap
 	QEMUFLAGS += -M virt -cpu la464 -device ramfb
 	EFI_NAME := BOOTLOONGARCH64.EFI
 	ARCH_TARGET := KernelArchLoongArch64
