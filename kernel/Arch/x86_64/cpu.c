@@ -1,6 +1,6 @@
-typedef unsigned long long u64;
+#include <lean/lean.h>
 
-u64 arch_halt(u64 token) {
+uint64_t arch_halt(uint64_t token) {
     __asm__ volatile ("hlt");
     return token;
 }

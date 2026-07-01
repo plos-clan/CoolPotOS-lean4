@@ -1,24 +1,24 @@
-typedef unsigned long long u64;
+#include <lean/lean.h>
 
 struct limine_framebuffer_response;
 struct limine_hhdm_response;
 struct limine_memmap_response;
 
 struct limine_framebuffer_request {
-    u64 id[4];
-    u64 revision;
+    uint64_t id[4];
+    uint64_t revision;
     struct limine_framebuffer_response *response;
 };
 
 struct limine_hhdm_request {
-    u64 id[4];
-    u64 revision;
+    uint64_t id[4];
+    uint64_t revision;
     struct limine_hhdm_response *response;
 };
 
 struct limine_memmap_request {
-    u64 id[4];
-    u64 revision;
+    uint64_t id[4];
+    uint64_t revision;
     struct limine_memmap_response *response;
 };
 

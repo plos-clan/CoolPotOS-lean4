@@ -3,8 +3,18 @@ BUILD_DIR := .lake/$(ARCH)
 KERNEL := $(BUILD_DIR)/kernel.elf
 OUTPUT_IMG := $(BUILD_DIR)/CoolPotOS-$(ARCH).img
 
-C_SRCS := kernel/boot.c kernel/Limine/limine.c kernel/Support/memory.c kernel/Arch/$(ARCH)/cpu.c
-LEAN_MODULES := kernel/BootInfo kernel/Framebuffer kernel/Core kernel/Arch/$(ARCH)/Cpu kernel/Arch/$(ARCH)/Main
+C_SRCS := kernel/boot.c kernel/shim.c
+C_SRCS += kernel/Limine/limine.c
+C_SRCS += kernel/Utils/memory.c
+C_SRCS += kernel/Drivers/serial.c
+C_SRCS += kernel/Arch/$(ARCH)/cpu.c kernel/Arch/$(ARCH)/serial.c
+
+LEAN_MODULES := kernel/Utils/Memory kernel/Utils/Bitmap kernel/Utils/Format
+LEAN_MODULES += kernel/Limine/BootInfo kernel/Main
+LEAN_MODULES += kernel/Drivers/Framebuffer kernel/Drivers/Serial
+LEAN_MODULES += kernel/Memory/Address kernel/Memory/Memmap kernel/Memory/Hhdm
+LEAN_MODULES += kernel/Memory/FrameAllocator kernel/Memory/Heap
+LEAN_MODULES += kernel/Arch/$(ARCH)/Cpu kernel/Arch/$(ARCH)/Entry
 C_OBJS := $(patsubst %.c,$(BUILD_DIR)/%.o,$(C_SRCS))
 LEAN_OBJS := $(addprefix $(BUILD_DIR)/,$(addsuffix .o,$(LEAN_MODULES)))
 
@@ -13,6 +23,7 @@ CFLAGS := -O3 -ffunction-sections -fdata-sections
 CFLAGS += -nostdinc -ffreestanding -fno-builtin -fno-stack-protector -DNDEBUG
 LEANFLAGS = $(CFLAGS) -I $(LEAN_PREFIX)/include -isystem $(LEAN_PREFIX)/include/clang
 LDFLAGS := -nostdlib -static --gc-sections -s -T assets/linkers/$(ARCH).ld
+LIBS := libs/$(ARCH)/liballoc.a
 
 QEMUFLAGS := -no-reboot -serial stdio
 QEMUFLAGS += -drive if=pflash,format=raw,file=assets/firmware/$(ARCH).fd
@@ -22,7 +33,7 @@ QEMUFLAGS += -drive if=none,id=disk,format=raw,file=$(OUTPUT_IMG)
 ifeq ($(ARCH), x86_64)
 	CFLAGS += -target x86_64-unknown-none
 	CFLAGS += -m64 -mcmodel=kernel -mgeneral-regs-only -mno-red-zone
-	QEMUFLAGS += -M q35 -cpu qemu64,+x2apic
+	QEMUFLAGS += -M q35 -cpu host -accel kvm
 	EFI_NAME := BOOTX64.EFI
 	ARCH_TARGET := KernelArchX86_64
 else ifeq ($(ARCH), loongarch64)
@@ -51,13 +62,13 @@ $(BUILD_DIR)/%.o: .lake/build/ir/%.c
 
 $(BUILD_DIR)/%.o: %.c
 	@mkdir -p $(@D)
-	@clang $(CFLAGS) -c $< -o $@
+	@clang $(LEANFLAGS) -c $< -o $@
 
 kernel:
 	@mkdir -p $(dir $(LEAN_OBJS) $(C_OBJS))
 	@lake build $(ARCH_TARGET)
-	@$(MAKE) --no-print-directory $(LEAN_OBJS) $(C_OBJS) ARCH=$(ARCH)
-	@ld.lld $(LEAN_OBJS) $(C_OBJS) $(LDFLAGS) -o $(KERNEL)
+	@$(MAKE) -s $(LEAN_OBJS) $(C_OBJS) ARCH=$(ARCH)
+	@ld.lld $(LEAN_OBJS) $(C_OBJS) $(LIBS) $(LDFLAGS) -o $(KERNEL)
 
 image: kernel
 	@chmod +x assets/tools/oib

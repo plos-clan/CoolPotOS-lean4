@@ -4,20 +4,44 @@ defaultTargets = ["KernelLimine", "KernelArchX86_64", "KernelArchLoongArch64"]
 
 [[lean_lib]]
 name = "KernelLimine"
-roots = ["kernel.Limine.Common", "kernel.Limine.Response"]
+roots = [
+  "kernel.Limine.Common",
+  "kernel.Limine.Response",
+  "kernel.Limine.BootInfo",
+]
 
 [[lean_lib]]
-name = "KernelSupport"
-roots = ["kernel.Support.Memory"]
+name = "KernelUtils"
+roots = [
+  "kernel.Utils.Memory",
+  "kernel.Utils.Bitmap",
+  "kernel.Utils.Format",
+]
 
 [[lean_lib]]
 name = "Kernel"
-roots = ["kernel.BootInfo", "kernel.Framebuffer", "kernel.Memory", "kernel.Core"]
+roots = [
+  "kernel.Limine.BootInfo",
+  "kernel.Drivers.Framebuffer",
+  "kernel.Drivers.Serial",
+  "kernel.Memory.Address",
+  "kernel.Memory.Memmap",
+  "kernel.Memory.Hhdm",
+  "kernel.Memory.FrameAllocator",
+  "kernel.Memory.Heap",
+  "kernel.Main",
+]
 
 [[lean_lib]]
 name = "KernelArchX86_64"
-roots = ["kernel.Arch.x86_64.Cpu", "kernel.Arch.x86_64.Main"]
+roots = [
+  "kernel.Arch.x86_64.Cpu",
+  "kernel.Arch.x86_64.Entry",
+]
 
 [[lean_lib]]
 name = "KernelArchLoongArch64"
-roots = ["kernel.Arch.loongarch64.Cpu", "kernel.Arch.loongarch64.Main"]
+roots = [
+  "kernel.Arch.loongarch64.Cpu",
+  "kernel.Arch.loongarch64.Entry",
+]
