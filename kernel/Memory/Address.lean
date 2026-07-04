@@ -18,7 +18,6 @@ def isPhysical (addr : UInt64) : Bool :=
 
 structure RawAddr where
   value : UInt64
-deriving Inhabited
 
 structure VirtAddr where
   value : UInt64
@@ -31,7 +30,6 @@ structure PhysAddr where
 namespace RawAddr
 
 def null : RawAddr := { value := 0 }
-
 def isNull (addr : RawAddr) : Bool := addr.value == 0
 
 end RawAddr

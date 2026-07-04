@@ -2,7 +2,6 @@ prelude
 import Init.Prelude
 import Init.Data.UInt.Basic
 import kernel.Limine.BootInfo
-import kernel.Drivers.Framebuffer
 import kernel.Drivers.Serial
 import kernel.Memory.Address
 import kernel.Memory.FrameAllocator
@@ -18,13 +17,13 @@ open Kernel.Memory
 open Kernel.Memory.Address
 open Kernel.Utils
 
-def main (bootInfoAddr : UInt64) : UInt64 :=
-  let token := Serial.writeStarted (Serial.init bootInfoAddr)
+def main (bootInfoAddr token : UInt64) : UInt64 := Id.run do
+  let mut token := Serial.writeStarted (Serial.init token)
   let bootInfo : RawAddr := { value := bootInfoAddr }
   let hhdmResponse := BootInfo.hhdmResponse bootInfo
   let memmapResponse := BootInfo.memmapResponse bootInfo
 
-  let token :=
+  token :=
     if hhdmResponse.value == 0 || memmapResponse.value == 0 then
       Serial.writeLine "Error: HHDM or Memmap response missing" token
     else
@@ -39,13 +38,6 @@ def main (bootInfoAddr : UInt64) : UInt64 :=
           s!"mem hhdm={hhdmResponse} memmap={memmapResponse} allocator={allocator} " ++
           s!"frames={Format.dec64 frames} frame={frame} heap={Format.dec64 heap}"
         Serial.writeLine message token
-
-  let framebufferResponse := BootInfo.framebufferResponse bootInfo
-  if framebufferResponse.value == 0 then
-    1 + token - token
-  else if Framebuffer.responseFramebufferCount framebufferResponse == 0 then
-    2 + token - token
-  else
-    token
+  return token
 
 end Kernel

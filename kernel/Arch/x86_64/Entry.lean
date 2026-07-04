@@ -8,10 +8,11 @@ import kernel.Main
 namespace Arch.x86_64
 
 @[export kernel_entry]
-def kernelEntry (bootInfoAddr : UInt64) : UInt64 :=
-  let token := Gdt.init bootInfoAddr
-  let token := Idt.init token
-  let token := Kernel.main bootInfoAddr + token - token
+def kernelEntry (bootInfoAddr : UInt64) : UInt64 := Id.run do
+  let mut token := bootInfoAddr
+  token := Gdt.init token
+  token := Idt.init token
+  token := Kernel.main bootInfoAddr token
   haltForever token
 
 end Arch.x86_64

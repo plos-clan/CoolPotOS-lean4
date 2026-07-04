@@ -27,6 +27,9 @@ roots = [
   "kernel.Memory.Address",
   "kernel.Memory.Memmap",
   "kernel.Memory.Hhdm",
+  "kernel.Memory.Paging.Types",
+  "kernel.Memory.Paging.Table",
+  "kernel.Memory.Paging.Walk",
   "kernel.Memory.FrameAllocator",
   "kernel.Memory.Heap",
   "kernel.Trap.Frame",
@@ -40,6 +43,7 @@ roots = [
   "kernel.Arch.x86_64.Cpu",
   "kernel.Arch.x86_64.Gdt",
   "kernel.Arch.x86_64.Idt",
+  "kernel.Arch.x86_64.Paging",
   "kernel.Arch.x86_64.Entry",
 ]
 

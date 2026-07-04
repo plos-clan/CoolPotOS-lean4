@@ -16,9 +16,7 @@ opaque initRaw : UInt64 -> UInt64 -> UInt64
 
 def init (hhdm : RawAddr) (allocator : RawAddr) : UInt64 :=
   let phys := FrameAllocator.alloc allocator heapPages
-  if phys.value == 0 then 0
-  else
-    let virt := Hhdm.RawAddr.toVirt phys hhdm
-    initRaw virt.value (heapPages * FrameAllocator.pageSize)
+  let virt := Hhdm.RawAddr.toVirt phys hhdm
+  initRaw virt.value (heapPages * FrameAllocator.pageSize)
 
 end Kernel.Memory.Heap

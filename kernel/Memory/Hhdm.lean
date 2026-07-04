@@ -9,8 +9,6 @@ namespace Kernel.Memory.Hhdm
 open Kernel.Utils.Memory
 
 abbrev RawAddr := Address.RawAddr
-abbrev VirtAddr := Address.VirtAddr
-abbrev PhysAddr := Address.PhysAddr
 
 namespace RawAddr
 

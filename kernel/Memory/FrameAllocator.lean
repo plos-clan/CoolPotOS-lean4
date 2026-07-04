@@ -15,8 +15,8 @@ open Kernel.Utils.Memory.KernelM (run store64)
 
 def pageSize : UInt64 := 4096
 def entryUsable : UInt64 := 0
-def notFound : UInt64 := 0xffffffffffffffff
 def structSize : UInt64 := 24
+def notFound : UInt64 := 0xffffffffffffffff
 
 def bitmapAddr (allocator : RawAddr) : UInt64 :=
   load64 allocator.value
@@ -78,7 +78,8 @@ partial def releaseUsableFrames
 def init (hhdm : RawAddr) (memmap : RawAddr) : RawAddr :=
   let count := Memmap.memmapEntryCount memmap
   let size := memorySize memmap 0 count 0
-  let bitmapBytes := divCeil (size / pageSize) 8
+  let bitmapWords := divCeil (size / pageSize) 64
+  let bitmapBytes := bitmapWords * 8
   let requiredBytes := alignUp (structSize + bitmapBytes) pageSize
   let storagePhys := findBitmapStorage memmap 0 count requiredBytes
   if storagePhys == notFound then
@@ -86,7 +87,7 @@ def init (hhdm : RawAddr) (memmap : RawAddr) : RawAddr :=
   else
     let storage := (Hhdm.RawAddr.toVirt { value := storagePhys } hhdm).value
     let bitmap := storage + structSize
-    let bitmapLen := bitmapBytes * 8
+    let bitmapLen := bitmapWords * 64
     let token := Utils.Bitmap.clearBytes bitmap bitmapBytes 0 storage
     let released :=
       releaseUsableFrames memmap bitmap bitmapLen 0 count 0 token
