@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x86_64, loongarch64]
+    env:
+      ARCH: ${{ matrix.arch }}
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: KyleMayes/install-llvm-action@v2
+        with:
+          version: "21"
+      - uses: leanprover/lean-action@v1
+        with:
+          use-github-cache: false

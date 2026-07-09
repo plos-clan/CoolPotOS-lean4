@@ -11,15 +11,15 @@ structure BuildArch where
   qemu : Array String
 
 def selectedArch : IO BuildArch := do
-  match <- IO.getEnv "ARCH" with
-  | some "x86_64" => pure {
+  match (<- IO.getEnv "ARCH").getD "x86_64" with
+  | "x86_64" => pure {
       name := "x86_64", efi := "BOOTX64.EFI",
       cflags := #[
         "-m64", "-mcmodel=kernel", "-mgeneral-regs-only", "-mno-red-zone"
       ],
       qemu := #["-M", "q35", "-cpu", "host", "-accel", "kvm"]
     }
-  | some "loongarch64" => pure {
+  | "loongarch64" => pure {
       name := "loongarch64", efi := "BOOTLOONGARCH64.EFI",
       cflags := #["-mcmodel=medium", "-msoft-float"],
       qemu := #["-M", "virt", "-cpu", "la464", "-device", "ramfb"]
@@ -28,7 +28,8 @@ def selectedArch : IO BuildArch := do
 
 target kernel pkg : FilePath := do
   let arch <- selectedArch
-  let dep <- pkg.fetchTargetJob `Kernel
+  let lib := pkg.findLeanLib? `Kernel
+  let dep <- lib.elim (error "missing Kernel library") LeanLib.fetch
   Job.async (caption := s!"kernel {arch.name}") do
     let _ <- dep.await
     let dir := FilePath.mk s!".lake/{arch.name}"
