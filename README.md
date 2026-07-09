@@ -7,9 +7,9 @@ This is a simple operating system for `x86_64` and `loongarch64` written in Lean
 Install Lean4 with `elan`, and ensure `clang`, `ld.lld`, and QEMU are available.
 
 **Available targets:**
-- `make`: Build the disk image
-- `make run`: Build and run the disk image in QEMU
-- `make clean`: Remove the build directory
+- `lake build`: Build the disk image
+- `lake run`: Build and run the disk image in QEMU
+- `rm -rf .lake/$ARCH`: Remove the build directory
 
 Use `ARCH=x86_64` or `ARCH=loongarch64` to specify the architecture.
 

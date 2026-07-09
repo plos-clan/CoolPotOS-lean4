@@ -1,6 +1,7 @@
 prelude
 import Init.Prelude
 import Init.Data.UInt.Basic
+import kernel.Arch.x86_64.Serial
 import kernel.Trap.Handler
 import kernel.Utils.Memory
 
@@ -8,14 +9,6 @@ namespace Arch.x86_64.Idt
 
 open Kernel.Utils.Memory (KernelM load64)
 open Kernel.Utils.Memory.KernelM (run store16 store32 store8)
-
-def frame (vector errorCode raw : UInt64) : Kernel.Trap.Frame := {
-  vector := vector
-  status := errorCode
-  pc := load64 raw
-  sp := load64 (raw + 24)
-  raw := raw
-}
 
 @[extern "idt_base"]
 opaque base : UInt64 -> UInt64
@@ -54,6 +47,8 @@ def init : UInt64 -> UInt64 := run do
 
 @[export interrupt_common]
 def interruptCommon (vector errorCode frame : UInt64) : UInt64 :=
-  Kernel.Trap.Handler.handle (Idt.frame vector errorCode frame) frame
+  Kernel.Trap.Handler.handleRaw
+    (Arch := Arch.x86_64.Arch)
+    vector errorCode (load64 frame) (load64 (frame + 24)) frame frame
 
 end Arch.x86_64.Idt

@@ -1,6 +1,7 @@
 prelude
 import Init.Prelude
 import Init.Data.UInt.Basic
+import kernel.Arch.loongarch64.Serial
 import kernel.Trap.Handler
 import kernel.Utils.Memory
 
@@ -13,16 +14,10 @@ opaque loadTrap : UInt64 -> UInt64
 
 def init (token : UInt64) : UInt64 := loadTrap token
 
-def frame (raw status : UInt64) : Kernel.Trap.Frame := {
-  vector := load64 (raw + 240)
-  status := status
-  pc := load64 (raw + 248)
-  sp := raw + 272
-  raw := raw
-}
-
 @[export interrupt_common]
 def interruptCommon (_vector status frame : UInt64) : UInt64 :=
-  Kernel.Trap.Handler.handle (Trap.frame frame status) frame
+  Kernel.Trap.Handler.handleRaw
+    (Arch := Arch.loongarch64.Arch)
+    (load64 (frame + 240)) status (load64 (frame + 248)) (frame + 272) frame frame
 
 end Arch.loongarch64.Trap

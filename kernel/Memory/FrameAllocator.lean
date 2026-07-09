@@ -27,10 +27,10 @@ def bitmapLen (allocator : RawAddr) : UInt64 :=
 def usableFrames (allocator : RawAddr) : UInt64 :=
   load64 (allocator.value + 16)
 
-def alignUp (value align : UInt64) : UInt64 :=
+@[inline] def alignUp (value align : UInt64) : UInt64 :=
   (value + align - 1) &&& ~~~(align - 1)
 
-def divCeil (value divisor : UInt64) : UInt64 :=
+@[inline] def divCeil (value divisor : UInt64) : UInt64 :=
   (value + divisor - 1) / divisor
 
 partial def memorySize (memmap : RawAddr) (index count size : UInt64) : UInt64 :=

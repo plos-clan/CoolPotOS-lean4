@@ -10,15 +10,14 @@ open Kernel.Memory.Address
 open Kernel.Utils.Memory
 open Kernel.Utils.Memory.KernelM (run store64)
 
-inductive EntryState where
-  | unmapped | table | leaf
-
-class Root {Level : Type} (level : Level) : Prop where
+class Root {Level : Type}
+    (root : Level) (native : outParam Level) (nativeShift : outParam UInt64) : Prop where
 
 class Next {Level : Type}
     (parent : Level) (child : outParam Level) (indexShift : outParam UInt64) : Prop where
 
-class Leaf {Level : Type} (level : Level) (pageShift leafFlags : outParam UInt64) : Prop where
+class Leaf {Level : Type} (pageShift : UInt64)
+    (level : outParam Level) (leafFlags : outParam UInt64) : Prop where
 
 class PageTableFormat (Arch : Type) where
   indexMask : UInt64
@@ -26,6 +25,8 @@ class PageTableFormat (Arch : Type) where
   present : UInt64
   huge : UInt64
   parentFlags : UInt64
+  kernelDataFlags : UInt64
+  tableBytes : UInt64
 
 class PageInvalidation (Arch : Type) where
   invalidatePage : UInt64 -> UInt64 -> UInt64
@@ -33,17 +34,8 @@ class PageInvalidation (Arch : Type) where
 structure Table (Arch : Type) {Level : Type} (level : Level) where
   addr : RawAddr
 
-structure Entry (Arch : Type) {Level : Type} (level : Level) (state : EntryState) where
-  value : UInt64
-
 structure EntrySlot (Arch : Type) {Level : Type} (level : Level) where
   addr : RawAddr
-
-namespace Entry
-
-def raw (entry : Entry arch level state) : UInt64 := entry.value
-
-end Entry
 
 namespace EntrySlot
 
@@ -64,12 +56,11 @@ def isPresent [PageTableFormat Arch] (value : UInt64) : Bool :=
 def isHuge [PageTableFormat Arch] (value : UInt64) : Bool :=
   value &&& PageTableFormat.huge (Arch := Arch) != 0
 
-def tableEntry [PageTableFormat Arch] [Next parent child indexShift]
-    (phys : RawAddr) : Entry Arch parent .table :=
-  { value := phys.value ||| PageTableFormat.parentFlags (Arch := Arch) }
+def tableEntry [PageTableFormat Arch] (phys : RawAddr) : UInt64 :=
+  phys.value ||| PageTableFormat.parentFlags (Arch := Arch)
 
-def leafEntry [Leaf level pageShift leafFlags]
-    (phys : RawAddr) (flags : UInt64) : Entry Arch level .leaf :=
-  { value := phys.value ||| flags ||| leafFlags }
+def leafEntry [Leaf pageShift level leafFlags]
+    (phys : RawAddr) (flags : UInt64) : UInt64 :=
+  phys.value ||| flags ||| leafFlags
 
 end Kernel.Memory.Paging

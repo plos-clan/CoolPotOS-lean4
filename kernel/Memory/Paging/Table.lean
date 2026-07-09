@@ -19,7 +19,7 @@ def fromAddr (addr : RawAddr) : Table Arch level :=
 def entry [PageTableFormat Arch]
     (table : Table Arch level) (virt : RawAddr) (shift : UInt64) : EntrySlot Arch level :=
   let index := (virt.value >>> shift) &&& PageTableFormat.indexMask (Arch := Arch)
-  { addr := { value := table.addr.value + index * 8 } }
+  { addr := { value := table.addr.value + (index <<< 3) } }
 
 end Table
 
@@ -41,13 +41,17 @@ def ensureNextTable [PageTableFormat Arch] [Next parent child indexShift]
   else if isPresent (Arch := Arch) raw then
     RawAddr.null
   else
-    let phys := FrameAllocator.alloc allocator 1
+    let bytes := PageTableFormat.tableBytes (Arch := Arch)
+    let frames :=
+      if bytes == FrameAllocator.pageSize then 1
+      else FrameAllocator.divCeil bytes FrameAllocator.pageSize
+    let phys := FrameAllocator.alloc allocator frames
     if phys.isNull then
       RawAddr.null
     else
       let table := Hhdm.RawAddr.toVirt phys hhdm
-      let token := Utils.Bitmap.clearBytes table.value 4096 0 phys.value
-      let entry := (tableEntry (Arch := Arch) (parent := parent) (child := child) phys).raw
+      let token := Utils.Bitmap.clearBytes table.value bytes 0 phys.value
+      let entry := tableEntry (Arch := Arch) phys
       let token := slot.store entry token
       { value := table.value + token - token }
 

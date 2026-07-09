@@ -3,6 +3,8 @@ import Init.Prelude
 
 namespace Arch.x86_64
 
+inductive Arch
+
 @[extern "arch_halt"]
 opaque halt : UInt64 -> UInt64
 

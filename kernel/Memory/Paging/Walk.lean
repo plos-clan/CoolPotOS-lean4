@@ -24,9 +24,9 @@ open Kernel.Memory.Address
   isPresent (Arch := Arch) raw &&
     (leafFlags == (0 : UInt64) || raw &&& leafFlags == leafFlags)
 
-class Walk {Level : Type} (src target : Level) where
+class Walk {Level : Type} (src target : Level) (targetShift : UInt64) where
   translate {Arch : Type} [PageTableFormat Arch] :
-    RawAddr -> Table Arch src -> RawAddr -> RawAddr
+    RawAddr -> Table Arch src -> RawAddr -> Option RawAddr
 
   map {Arch : Type} [PageTableFormat Arch] :
     RawAddr -> RawAddr -> Table Arch src -> RawAddr -> RawAddr -> UInt64 -> UInt64 -> UInt64
@@ -35,78 +35,69 @@ class Walk {Level : Type} (src target : Level) where
     RawAddr -> Table Arch src -> RawAddr -> UInt64 -> UInt64
 
 instance walkLeaf {Level : Type} {level : Level} {shift leafFlags : UInt64}
-    [Leaf level shift leafFlags] : Walk level level where
+    [Leaf shift level leafFlags] : Walk level level shift where
   translate {Arch} [PageTableFormat Arch] _ table virt :=
     let slot := table.entry virt shift
     let raw := slot.load
     if isLeaf (Arch := Arch) raw leafFlags then
-      leafValue (Arch := Arch) raw virt shift
+      some (leafValue (Arch := Arch) raw virt shift)
     else
-      RawAddr.null
+      none
 
   map {Arch} [PageTableFormat Arch] _ _ table virt phys flags token :=
     let slot := table.entry virt shift
     let raw := slot.load
     if leafFlags != (0 : UInt64) && isPresent (Arch := Arch) raw && !isHuge (Arch := Arch) raw then
-      token
+      0
     else
-      slot.store ((leafEntry (Arch := Arch) (level := level) phys flags).raw) token
+      let token := slot.store
+        (leafEntry (pageShift := shift) (level := level) phys flags)
+        token
+      1 + token - token
 
   unmap {Arch} [PageTableFormat Arch] _ table virt token :=
     let slot := table.entry virt shift
     let raw := slot.load
     if isLeaf (Arch := Arch) raw leafFlags then
-      slot.store 0 token
+      let token := slot.store 0 token
+      1 + token - token
     else
-      token
+      0
 
 instance walkStep {Level : Type} {src child target : Level} {shift : UInt64}
-    [Next src child shift] [Walk child target] : Walk src target where
+    {targetShift : UInt64}
+    [Next src child shift] [Walk child target targetShift] : Walk src target targetShift where
   translate {Arch} [PageTableFormat Arch] hhdm table virt :=
     let slot := table.entry virt shift
     let next := slot.nextTable hhdm
     if next.isNull then
-      RawAddr.null
+      none
     else
       let childTable : Table Arch child := Table.fromAddr next
-      Walk.translate (src := child) (target := target) (Arch := Arch) hhdm childTable virt
+      Walk.translate
+        (src := child) (target := target) (targetShift := targetShift) (Arch := Arch)
+        hhdm childTable virt
 
   map {Arch} [PageTableFormat Arch] hhdm allocator table virt phys flags token :=
     let slot := table.entry virt shift
     let next := slot.ensureNextTable hhdm allocator
     if next.isNull then
-      token
+      0
     else
       let childTable : Table Arch child := Table.fromAddr next
-      Walk.map (src := child) (target := target) (Arch := Arch)
+      Walk.map
+        (src := child) (target := target) (targetShift := targetShift) (Arch := Arch)
         hhdm allocator childTable virt phys flags token
 
   unmap {Arch} [PageTableFormat Arch] hhdm table virt token :=
     let slot := table.entry virt shift
     let next := slot.nextTable hhdm
     if next.isNull then
-      token
+      0
     else
       let childTable : Table Arch child := Table.fromAddr next
-      Walk.unmap (src := child) (target := target) (Arch := Arch) hhdm childTable virt token
-
-def translate {Level : Type} {root target : Level}
-    [PageTableFormat Arch] [Root root] [Walk root target]
-    (hhdm : RawAddr) (table : Table Arch root) (virt : RawAddr) : RawAddr :=
-  Walk.translate (src := root) (target := target) (Arch := Arch) hhdm table virt
-
-def mapPage {Level : Type} {root target : Level}
-    [PageTableFormat Arch] [PageInvalidation Arch] [Root root] [Walk root target]
-    (hhdm allocator : RawAddr) (table : Table Arch root)
-    (virt phys : RawAddr) (flags token : UInt64) : UInt64 :=
-  let token := Walk.map (src := root) (target := target) (Arch := Arch)
-    hhdm allocator table virt phys flags token
-  PageInvalidation.invalidatePage (Arch := Arch) virt.value token
-
-def unmapPage {Level : Type} {root target : Level}
-    [PageTableFormat Arch] [PageInvalidation Arch] [Root root] [Walk root target]
-    (hhdm : RawAddr) (table : Table Arch root) (virt : RawAddr) (token : UInt64) : UInt64 :=
-  let token := Walk.unmap (src := root) (target := target) (Arch := Arch) hhdm table virt token
-  PageInvalidation.invalidatePage (Arch := Arch) virt.value token
+      Walk.unmap
+        (src := child) (target := target) (targetShift := targetShift) (Arch := Arch)
+        hhdm childTable virt token
 
 end Kernel.Memory.Paging
